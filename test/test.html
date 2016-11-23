@@ -12,7 +12,7 @@
 <body>
 <script>
 
-describe("Business Days Tests", function() {
+describe("Exclusive Business Days Tests", function() {
 
     // I believe this list should be populated manuall every year OR be taken from some reliable API like Google Calendar. I believe also that se shouldn't calculate holidays based on rules.
     var holidays = ['2016-11-24', '2016-11-25', '2016-12-26',
@@ -55,7 +55,55 @@ describe("Business Days Tests", function() {
         var holidaysStr = holidays.filter(i => startDate <= i && i <= endDate && 0 < i.getDay() && i.getDay() < 6).map(i => i.toDateString()).join(', ');
     
         it((index > 8 ? '' : '0') + (index + 1) + '. ' + item[0] + ' - ' + item[1] + ' (' + daysOfWeek[startDate.getDay()] + ' - ' + daysOfWeek[endDate.getDay()] + (holidaysStr ? ', holidays: ' + holidaysStr : '') + ') should return ' + item[2], function() {
-            expect(getBusinessDays(item[0], item[1], holidays)).toBe(item[2]);
+            expect(getBusinessDays(item[0], item[1], {holidays: holidays, exclusive: true})).toBe(item[2]);
+        });
+    });
+});
+
+describe("Inclusive Business Days Tests", function() {
+
+    // I believe this list should be populated manuall every year OR be taken from some reliable API like Google Calendar. I believe also that se shouldn't calculate holidays based on rules.
+    var holidays = ['2016-11-24', '2016-11-25', '2016-12-26',
+        '2017-01-01', '2017-01-02', '2017-01-16', '2017-02-20', '2017-04-17', '2017-05-29', '2017-07-04', '2017-09-04', '2017-10-09', '2017-11-23', '2017-11-24', '2017-12-25'];
+            
+    holidays = holidays.map(item => new Date(item));
+    
+    beforeEach(function() {
+        jasmine.addMatchers({toBeNumber: function(util, customEqualityTesters){return {compare: function(actual, expected) {
+            return {
+                pass: typeof actual === 'number'                
+            };
+        }}}});
+    });
+    
+    it("Should return a number", function() {
+        expect(getBusinessDays('2014-09-23 10:15:23', '2014-09-25 10:15:23')).toBeNumber();
+    });
+    
+    [
+        ['2016-11-14', '2016-11-18', 5]
+       ,['2016-11-14', '2016-11-19', 5]
+       ,['2016-11-14', '2016-11-20', 5]
+       ,['2016-11-14', '2016-11-21', 6]
+       ,['2016-11-13', '2016-11-19', 5]
+       ,['2016-11-12', '2016-11-19', 5]
+       ,['2016-11-11', '2016-11-19', 6]
+       ,['2016-11-11', '2016-11-20', 6]
+       ,['2016-11-11', '2016-11-21', 7]
+       ,['2016-11-11', '2016-11-22', 8]
+       ,['2016-11-11', '2016-11-12', 1]
+       ,['2016-11-11', '2016-11-29', 11]
+    ].forEach(function(item, index, array) {
+    
+        var daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+        var startDate = new Date(item[0]);
+        var endDate = new Date(item[1]);
+
+        var holidaysStr = holidays.filter(i => startDate <= i && i <= endDate && 0 < i.getDay() && i.getDay() < 6).map(i => i.toDateString()).join(', ');
+    
+        it((index > 8 ? '' : '0') + (index + 1) + '. ' + item[0] + ' - ' + item[1] + ' (' + daysOfWeek[startDate.getDay()] + ' - ' + daysOfWeek[endDate.getDay()] + (holidaysStr ? ', holidays: ' + holidaysStr : '') + ') should return ' + item[2], function() {
+            expect(getBusinessDays(item[0], item[1], {holidays: holidays})).toBe(item[2]);
         });
     });
 });
